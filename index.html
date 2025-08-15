@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anime hay • Vietsub</title>
+<style>
+  :root {
+    --bg:#0b0f19; --card:#121826; --soft:#1b2233; --text:#e6e9ef; --muted:#97a3b9;
+    --brand:#7c5cff; --accent:#00d1b2; --radius:16px;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body {
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial,"Noto Sans";
+    background:
+      radial-gradient(1200px 600px at 10% 0%, #1a1f34 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #1c233a 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+  }
+  header {
+    position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px; backdrop-filter:blur(6px);
+    background:linear-gradient(180deg, rgba(11,15,25,.85), rgba(11,15,25,.35));
+    border-bottom:1px solid #20283f;
+  }
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--accent));box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:16px;font-weight:700}
+  header .actions{display:flex;gap:8px}
+  .btn{appearance:none;border:none;border-radius:12px;padding:10px 12px;background:var(--soft);color:var(--text);font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{background:#222a42}
+  .btn:active{transform:scale(.98)}
+  main{display:grid;place-items:center;padding:22px}
+  .card{width:min(980px,100%);background:var(--card);border:1px solid #212a40;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .video-wrap{position:relative;background:#0a0f1d}
+  .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+  video#player{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+  .overlay-play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;transition:opacity .25s}
+  .overlay-play .circle{width:86px;height:86px;border-radius:999px;background:rgba(0,0,0,.45);display:grid;place-items:center;font-size:36px;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+  .overlay-play.hide{opacity:0}
+  .controls{display:flex;gap:10px;align-items:center;padding:12px;background:linear-gradient(180deg,#0f1525,#0b0f19);border-top:1px solid #222b42}
+  .time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px;min-width:110px;text-align:center}
+  .range{flex:1;display:flex;align-items:center;gap:10px}
+  input[type="range"]{width:100%;accent-color:var(--brand)}
+  .meta{display:flex;gap:16px;padding:16px 16px 20px;align-items:flex-start}
+  .thumb{width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#202945,#15203a)}
+  .title{margin:0 0 6px;font-weight:800;font-size:18px}
+  .desc{margin:0;color:var(--muted)}
+  .chipbar{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 16px}
+  .chip{background:#1a2236;color:#c3d0ea;border:1px solid #26314e;padding:6px 10px;border-radius:999px;font-size:12px}
+  .episode-list{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 20px}
+  .episode{background:#1b2233;color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer;border:1px solid #26314e;font-size:14px}
+  .episode:hover{background:#222a42}
+  .episode.active{background:var(--brand);color:#fff}
+  .theater .card{width:min(1200px,100%)}
+  @media (max-width:560px){
+    .controls{flex-wrap:wrap}
+    .time{order:3;width:100%;text-align:right}
+    .range{order:2}
+    .vol-wrap{display:none}
+    header h1{font-size:14px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo"></div>
+    <h1>Anime hay • Vietsub</h1>
+  </div>
+  <div class="actions">
+    <button class="btn" id="theaterBtn">Rạp</button>
+    <button class="btn" id="refreshBtn">Tải lại</button>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="video-wrap">
+      <div class="stage" id="stage">
+        <video id="player" preload="metadata" playsinline></video>
+        <div class="overlay-play" id="overlay"><div class="circle">▶</div></div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="playBtn">Phát</button>
+        <div class="range"><input id="seek" type="range" min="0" max="100" step="0.1"></div>
+        <div class="time"><span id="cur">00:00</span> / <span id="dur">00:00</span></div>
+        <div class="vol-wrap" style="display:flex;gap:6px;align-items:center">
+          <button class="btn" id="muteBtn">🔊</button>
+          <input id="vol" type="range" min="0" max="1" step="0.01" value="1">
+        </div>
+        <select class="btn" id="rate">
+          <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option><option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option><option value="1.75">1.75x</option>
+          <option value="2">2x</option>
+        </select>
+        <button class="btn" id="pipBtn">PiP</button>
+        <button class="btn" id="fsBtn">⛶</button>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="thumb"></div>
+      <div class="texts">
+        <h2 class="title">Xem anime miễn phí</h2>
+        <p class="desc">Anime vietsub miễn phí chỉ có tại duyvu8529</p>
+      </div>
+    </div>
+    <div class="chipbar">
+      <span class="chip">Nhớ vị trí xem</span>
+      <span class="chip">Chế độ rạp</span>
+    </div>
+    <div class="episode-list" id="episodes"></div>
+  </section>
+</main>
+
+<script>
+  const $ = (s, p=document) => p.querySelector(s);
+  const video = $('#player');
+  const playBtn = $('#playBtn'), overlay = $('#overlay'), seek = $('#seek');
+  const cur = $('#cur'), dur = $('#dur'), vol = $('#vol'), muteBtn = $('#muteBtn');
+  const rate = $('#rate'), fsBtn = $('#fsBtn'), pipBtn = $('#pipBtn');
+  const theaterBtn = $('#theaterBtn'), refreshBtn = $('#refreshBtn');
+  const stage = $('#stage'), episodesEl = $('#episodes');
+
+  const episodes = [
+    {title:"Tập 1",src:"https://files.catbox.moe/5hrwas.mp4"},
+    {title:"Tập 2",src:"https://files.catbox.moe/m8sari.mp4"},
+    {title:"Tập 3",src:"https://files.catbox.moe/t94emz.mp4"},
+    {title:"Tập 4",src:"https://files.catbox.moe/ck2png.mp4"},
+    {title:"Tập 5",src:"https://files.catbox.moe/31qlcr.mp4"},
+    {title:"Tập 6",src:"https://files.catbox.moe/wsw1qa.mp4"},
+    {title:"Tập 7",src:"https://files.catbox.moe/upvcz6.mp4"},
+    {title:"Tập 8",src:"https://files.catbox.moe/nsvuj0.mp4"},
+    {title:"Tập 9",src:"https://files.catbox.moe/9bq0t9.mp4"},
+    {title:"Tập 10",src:"https://files.catbox.moe/xyuagj.mp4"},
+    {title:"Tập 11",src:"https://files.catbox.moe/iok62z.mp4"},
+    {title:"Tập 12",src:"https://files.catbox.moe/njrx7b.mp4"},
+    {title:"Tập 13", src:"https://files.catbox.moe/8zew65.mp4"},
+    {title:"Tập 14",src:"https://files.catbox.moe/qs145n.mp4"},
+    {title:"Tập 15", src:"https://files.catbox.moe/yuxwzs.mp4"},
+    {title:"Tập 16", src:"https://files.catbox.moe/imles7.mp4"},
+    {title:"Tập 17", src:"https://files.catbox.moe/os7fbq.mp4"},
+    {title:"Tập 18", src:"https://files.catbox.moe/woscr6.mp4"},
+    {title:"Tập 19", src:"https://files.catbox.moe/h01ejs.mp4"},
+    {title:"Tập 20", src:"https://files.catbox.moe/cg7jzw.mp4"},
+    {title:"Tập 21", src:"https://files.catbox.moe/5yi7da.mp4"},
+  ];
+  let currentIndex = 0, KEY = '';
+
+  const fmt = t => {
+    if(!isFinite(t)) return '00:00';
+    const s = String(Math.floor(t%60)).padStart(2,'0');
+    const m = String(Math.floor((t/60)%60)).padStart(2,'0');
+    const h = Math.floor(t/3600);
+    return h>0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+  };
+
+  function loadEpisode(i){
+    currentIndex = i;
+    const ep = episodes[i];
+    KEY = 'lastpos:' + ep.src;
+    video.src = ep.src;
+    video.load();
+    highlightEpisode();
+  }
+
+  function highlightEpisode(){
+    [...episodesEl.children].forEach((btn,i)=>btn.classList.toggle('active',i===currentIndex));
+  }
+
+  episodes.forEach((ep,i)=>{
+    const btn = document.createElement('div');
+    btn.className = 'episode';
+    btn.textContent = ep.title;
+    btn.onclick = () => loadEpisode(i);
+    episodesEl.appendChild(btn);
+  });
+
+  video.addEventListener('loadedmetadata', () => {
+    dur.textContent = fmt(video.duration);
+    const last = Number(localStorage.getItem(KEY) || 0);
+    if(last && last < video.duration - 3) video.currentTime = last;
+  });
+
+  video.addEventListener('timeupdate', () => {
+    if(video.currentTime > 0){
+      localStorage.setItem(KEY, Math.floor(video.currentTime));
+    }
+  });
+
+  video.addEventListener('ended', () => localStorage.removeItem(KEY));
+
+  playBtn.onclick = () => video.paused ? video.play() : video.pause();
+  overlay.onclick = () => video.play();
+  video.onclick = () => video.paused ? video.play() : video.pause();
+
+  video.addEventListener('play', () => { playBtn.textContent='Tạm dừng'; overlay.classList.add('hide'); });
+  video.addEventListener('pause', () => { playBtn.textContent='Phát'; overlay.classList.remove('hide'); });
+
+  video.addEventListener('timeupdate', () => {
+    cur.textContent = fmt(video.currentTime);
+    seek.value = (video.currentTime / video.duration) * 100;
+  });
+
+  seek.oninput = () => video.currentTime = (seek.value / 100) * video.duration;
+
+  vol.oninput = () => { video.volume = vol.value; video.muted = video.volume===0; muteBtn.textContent = video.muted ? '🔇' : '🔊'; };
+  muteBtn.onclick = () => { video.muted = !video.muted; muteBtn.textContent = video.muted ? '🔇' : '🔊'; };
+
+  rate.onchange = () => video.playbackRate = rate.value;
+
+  fsBtn.onclick = () => document.fullscreenElement ? document.exitFullscreen() : stage.requestFullscreen();
+  pipBtn.onclick = () => document.pictureInPictureElement ? document.exitPictureInPicture() : video.requestPictureInPicture();
+
+  theaterBtn.onclick = () => document.body.classList.toggle('theater');
+  refreshBtn.onclick = () => location.reload(true);
+
+  loadEpisode(0);
+</script>
+</body>
+</html>
